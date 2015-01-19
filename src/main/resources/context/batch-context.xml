@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:batch="http://www.springframework.org/schema/batch"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-file="http://www.springframework.org/schema/integration/file"
+	xmlns:int-ftp="http://www.springframework.org/schema/integration/ftp"
+	xmlns:int-http="http://www.springframework.org/schema/integration/http"
+	xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
+	xmlns:int-jmx="http://www.springframework.org/schema/integration/jmx"
+	xmlns:int-script="http://www.springframework.org/schema/integration/scripting"
+	xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
+	xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-4.0.xsd
+		http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file-4.0.xsd
+		http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp-4.0.xsd
+		http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http-4.0.xsd
+		http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/jms/spring-integration-jms-4.0.xsd
+		http://www.springframework.org/schema/integration/jmx http://www.springframework.org/schema/integration/jmx/spring-integration-jmx-4.0.xsd
+		http://www.springframework.org/schema/integration/scripting http://www.springframework.org/schema/integration/scripting/spring-integration-scripting-4.0.xsd
+		http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream-4.0.xsd
+		http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.0.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd">
+    
+    
+   <!-- ***** log   ***** -->
+   <bean id="log4jInitialisation" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="targetClass"
+            value="org.springframework.util.Log4jConfigurer" />
+        <property name="targetMethod" value="initLogging" />
+        <property name="arguments">
+            <list>
+                <value>classpath:properties/log4j.xml</value>
+            </list>
+        </property>
+   </bean>
+   
+   <!-- ***** properties init ***** -->
+   <bean id="jdbcPlaceholderProperties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" >
+        <property name="location" value="classpath:properties/jdbc.properties" />
+        <property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE" />
+        <property name="ignoreUnresolvablePlaceholders" value="true" />
+        <property name="order" value="1" />
+    </bean>
+    
+    
+    <!-- ***** Job Repository의 DataSource ***** -->
+    <bean id="repositoryDataSource" class="org.apache.commons.dbcp.BasicDataSource">
+        <property name="driverClassName" value="${repository.jdbc.driver}" />
+        <property name="url" value="${repository.jdbc.url}" />
+        <property name="username" value="${repository.jdbc.user}" />
+        <property name="password" value="${repository.jdbc.password}" />
+        <property name="initialSize" value="2" />
+        <property name="timeBetweenEvictionRunsMillis" value="60000" />
+        <property name="maxActive" value="50" />
+        <property name="testOnBorrow" value="true"/> 
+        <property name="testWhileIdle" value="true"/> 
+    </bean>
+    
+    <!-- ***** Job Repository의 JdbcTemplate ***** -->
+    <bean id="repositoryJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <constructor-arg ref="repositoryDataSource" />
+    </bean>
+    
+    
+    <!-- ***** Business의 DataSource ***** -->
+    <bean id="ssleeDataSource" class="org.apache.commons.dbcp.BasicDataSource">
+        <property name="driverClassName" value="${sslee.jdbc.driver}" />
+        <property name="url" value="${sslee.jdbc.url}" />
+        <property name="username" value="${sslee.jdbc.user}" />
+        <property name="password" value="${sslee.jdbc.password}" />
+    </bean>
+    
+    <!-- ***** Business의 JdbcTemplate ***** -->
+    <bean id="ssleeJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <constructor-arg ref="ssleeDataSource" />
+    </bean>
+    
+    <!-- ***** Business의 sqlSessionFactory ***** -->
+    <bean id="ssleeSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="ssleeDataSource" />
+        <property name="configLocation" value="classpath:config/mybatis-config.xml"/>
+        <property name="mapperLocations">
+            <list>
+                <value>classpath:sqlmap/**/*.xml</value>
+            </list>
+        </property>
+    </bean>
+    
+    <!-- ***** Business의 sqlSessionTemplat ***** -->
+    <bean id="ssleeSqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate" destroy-method="clearCache">
+       <constructor-arg index="0" ref="ssleeSqlSessionFactory" />
+       <constructor-arg index="1" value="BATCH" />
+    </bean>
+    
+    <!-- ***** Business의 transactionManager ****  -->
+    <bean id="ssleeTransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager" lazy-init="true">
+        <property name="dataSource" ref="ssleeDataSource" />
+    </bean>
+    
+    <!-- ***** Business의 service layer transactionManager ****  -->
+    <tx:annotation-driven transaction-manager="ssleeTransactionManager"/>
+    
+    
+    
+   
+   
+    
+    
+</beans>
