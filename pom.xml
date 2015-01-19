@@ -10,9 +10,9 @@
 	<name>Command Line Spring Batch Module</name>
 	<url>http://www.springframework.org/spring-batch/archetypes/simple-cli-archetype</url>
 	<description>
-		<![CDATA[
+	  <![CDATA[
       This project is a minimal command line batch sample from Spring Batch.  
-    ]]>
+      ]]>
 	</description>
 	<properties>
 		<maven.test.failure.ignore>true</maven.test.failure.ignore>
