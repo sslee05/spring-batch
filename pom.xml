@@ -3,8 +3,8 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.springframework.samples.batch</groupId>
-	<artifactId>spring-batch-simple</artifactId>
+	<groupId>com.sslee</groupId>
+	<artifactId>spring-batch</artifactId>
 	<version>2.0.0.CI-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>Command Line Spring Batch Module</name>
@@ -276,8 +276,14 @@
 			<version>1.2.14</version>
 		</dependency>
 		
-		<!-- thrid part -->
 		<!-- third -->
+		<!-- 분산 transaction xapool -->
+		<dependency>
+		    <groupId>com.experlog</groupId>
+		    <artifactId>xapool</artifactId>
+		    <version>1.5.0</version>
+		</dependency>
+		
         <dependency>
             <groupId>aopalliance</groupId>
             <artifactId>aopalliance</artifactId>
@@ -486,12 +492,6 @@
         </dependency>
         
         <dependency>
-            <groupId>org.mybatis</groupId>
-            <artifactId>mybatis</artifactId>
-            <version>3.2.1</version>
-        </dependency>
-        
-        <dependency>
             <groupId>com.oracle</groupId>
             <artifactId>ojdbc6</artifactId>
             <version>11.2.0.3</version>
@@ -564,7 +564,7 @@
 	<repositories>
         <repository>
             <id>central</id>
-            <url>http://repo.maven.apache.org/maven2/</url>
+            <url>http://repo1.maven.apache.org/maven2/</url>
         </repository>
         <repository>
             <id>springbyexample.org</id>
