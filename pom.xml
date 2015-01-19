@@ -557,8 +557,6 @@
 		    <artifactId>j2ssh-core</artifactId>
 		    <version>0.2.9</version>
 		</dependency>
-        
-		
 	</dependencies>
 	
 	<repositories>
