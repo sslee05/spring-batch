@@ -86,7 +86,7 @@
         <property name="transactionManager" ref="jobRepoTransactionManager" />
         <property name="databaseType" value="oracle" />
         <property name="dataSource" ref="repositoryDataSource" />
-        <!-- <property name="isolationLevelForCreate" value="ISOLATION_DEFAULT "></property> -->
+        <property name="isolationLevelForCreate" value="ISOLATION_DEFAULT "></property>
         <!-- property name="isolationLevelForCreate" value="READ_UNCOMMITTED "></property -->
         <property name="maxVarCharLength"><value>2500</value></property>
     </bean>
@@ -134,6 +134,82 @@
     
     <!-- ***** Business의 service layer transactionManager ****  -->
     <tx:annotation-driven transaction-manager="transactionManager"/>
+    
+    
    
+   <!-- ******* 분산처리 transaction START ***** -->
+   <bean id="jotm" class="org.springframework.transaction.jta.JotmFactoryBean" />
+    
+   <bean id="jtaTransactionManager" class="org.springframework.transaction.jta.JtaTransactionManager"
+        p:userTransaction-ref="jotm" />
+        
+   <bean id="oracleXADataSource"
+        class="org.enhydra.jdbc.pool.StandardXAPoolDataSource"
+        destroy-method="stopPool">
+        <property name="dataSource">
+            <bean class="org.enhydra.jdbc.standard.StandardXADataSource">
+                <property name="transactionManager" ref="jotm" />
+                <property name="driverName" value="${sslee.jdbc.driver}" />
+                <property name="url" value="${sslee.jdbc.url}" />
+            </bean>
+        </property>
+        <property name="user" value="${sslee.jdbc.user}" />
+        <property name="password" value="${sslee.jdbc.password}" />
+   </bean>
+   
+   <!-- ***** Business의 sqlSessionFactory ***** -->
+    <bean id="oracleXASqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="oracleXADataSource" />
+        <property name="configLocation" value="classpath:context/mybatis-config.xml"/>
+        <property name="mapperLocations">
+            <list>
+                <value>classpath:sqlmap/**/*.xml</value>
+            </list>
+        </property>
+    </bean>
+    
+    <!-- ***** Business의 sqlSessionTemplat ***** -->
+    <bean id="oracleXAqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate" destroy-method="clearCache">
+       <constructor-arg index="0" ref="oracleXASqlSessionFactory" />
+       <constructor-arg index="1" value="BATCH" />
+    </bean>
+   
+   <bean id="pgsqlXADataSource"
+        class="org.enhydra.jdbc.pool.StandardXAPoolDataSource"
+        destroy-method="stopPool">
+        <property name="dataSource">
+            <bean class="org.enhydra.jdbc.standard.StandardXADataSource">
+                <property name="transactionManager" ref="jotm" />
+                <property name="driverName" value="${pg.jdbc.driver}" />
+                <property name="url" value="${pg.jdbc.url}" />
+            </bean>
+        </property>
+        <property name="user" value="sslee" />
+        <property name="password" value="sslee" />
+   </bean>
+   
+   <!-- ***** Business의 sqlSessionFactory ***** -->
+    <bean id="pgsqlXASqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="pgsqlXADataSource" />
+        <property name="configLocation" value="classpath:context/mybatis-config.xml"/>
+        <property name="mapperLocations">
+            <list>
+                <value>classpath:sqlmap/**/*.xml</value>
+            </list>
+        </property>
+    </bean>
+    
+   <!-- postgresSQL dataSource를 property로 하는 slqMapClient를 가지는 dao -->
+   <bean id="oracleJtaSqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate" destroy-method="clearCache">
+      <constructor-arg index="0" ref="oracleXASqlSessionFactory" />
+      <constructor-arg index="1" value="BATCH" />
+   </bean>
+    
+    <!-- oracle dataSource를 property로 하는 slqMapClient를 가지는 dao -->
+    <bean id="pgsqlJtaSqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate" destroy-method="clearCache">
+      <constructor-arg index="0" ref="pgsqlXASqlSessionFactory" />
+      <constructor-arg index="1" value="BATCH" />    
+    </bean>
+    <!-- ******* 분산처리 transaction END ***** -->
         
 </beans>
