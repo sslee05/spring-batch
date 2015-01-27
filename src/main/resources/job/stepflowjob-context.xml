@@ -41,7 +41,6 @@
         <constructor-arg><bean class="com.sslee.batch.stepflow.helper.UserDataRestoration"/></constructor-arg>
     </bean>
     
-    
     <batch:job id="stepFlowJob">
         <batch:step id="backupTaskletStep">
             <batch:tasklet ref="backupTasklet" transaction-manager="transactionManager"/>
@@ -53,16 +52,11 @@
                 <batch:chunk commit-interval="2" reader="userFileItemReader" writer="userWriter" />
             </batch:tasklet>
             <batch:end on="COMPLETED" />
-            <batch:next on="FAILED" to="restoreStep"/>
-            <batch:listeners>
-                <batch:listener ref="userStepExecutionListener" />
-            </batch:listeners>
+            <batch:next on="*" to="restoreStep"/>
         </batch:step>
         <batch:step id="restoreStep">
             <batch:tasklet ref="restorationTasklet" transaction-manager="transactionManager" />
         </batch:step>
-        <batch:listeners>
-            <batch:listener ref="restorationJobExecutionListener" />
-        </batch:listeners>
     </batch:job>
+    
 </beans>

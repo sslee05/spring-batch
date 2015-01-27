@@ -88,7 +88,7 @@
         <property name="dataSource" ref="repositoryDataSource" />
         <!-- <property name="isolationLevelForCreate" value="ISOLATION_DEFAULT "></property> -->
         <!-- property name="isolationLevelForCreate" value="READ_UNCOMMITTED "></property -->
-        <property name="maxVarCharLength"><value>2500</value></property>
+        <property name="maxVarCharLength"><value>500</value></property>
     </bean>
     
     <bean id="jobRegistry" class="org.springframework.batch.core.configuration.support.MapJobRegistry" />
@@ -124,7 +124,8 @@
     <!-- ***** Business의 sqlSessionTemplat ***** -->
     <bean id="ssleeSqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate" destroy-method="clearCache">
        <constructor-arg index="0" ref="ssleeSqlSessionFactory" />
-       <constructor-arg index="1" value="BATCH" />
+       <!-- <constructor-arg index="1" value="REUSE" /> -->
+       <constructor-arg index="1" value="SIMPLE" />
     </bean>
     
     <!-- ***** Business의 transactionManager ****  -->

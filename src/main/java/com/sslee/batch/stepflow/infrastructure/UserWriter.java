@@ -20,8 +20,11 @@ public class UserWriter implements ItemWriter<User> {
 		//duplicate exception 발생 
 		//Attempt to update step execution id=1062 with wrong version (1)
 		//can't controll step flow
+		int i = 0;
 		for(User item : items) {
+			//if(i>0) throw new BatchException("custom exception");
 			sqlSessionTemplate.insert("batch.user.addUser", item);
+			i++;
 		}
 	
 	}
