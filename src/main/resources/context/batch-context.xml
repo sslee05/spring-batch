@@ -67,6 +67,7 @@
         <property name="maxActive" value="50" />
         <property name="testOnBorrow" value="true"/> 
         <property name="testWhileIdle" value="true"/> 
+        <property name="accessToUnderlyingConnectionAllowed" value="true" />
     </bean>
     
     <!-- ***** Job Repository의 JdbcTemplate ***** -->
@@ -89,7 +90,10 @@
         <!-- <property name="isolationLevelForCreate" value="ISOLATION_DEFAULT "></property> -->
         <!-- property name="isolationLevelForCreate" value="READ_UNCOMMITTED "></property -->
         <property name="maxVarCharLength"><value>500</value></property>
+        <property name="lobHandler" ref="lobHandler" />
     </bean>
+    
+    <bean id="lobHandler" class="org.springframework.jdbc.support.lob.DefaultLobHandler" />
     
     <bean id="jobRegistry" class="org.springframework.batch.core.configuration.support.MapJobRegistry" />
     <bean id="jobLauncher" class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
@@ -125,8 +129,9 @@
     <bean id="ssleeSqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate" destroy-method="clearCache">
        <constructor-arg index="0" ref="ssleeSqlSessionFactory" />
        <!-- <constructor-arg index="1" value="REUSE" /> -->
-       <constructor-arg index="1" value="SIMPLE" />
+       <constructor-arg index="1" value="BATCH" />
     </bean>
+    
     
     <!-- ***** Business의 transactionManager ****  -->
     <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager" lazy-init="true">

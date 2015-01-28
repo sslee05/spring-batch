@@ -3,20 +3,29 @@ package com.sslee.batch.jotm.infrastructure;
 import java.util.List;
 
 import org.mybatis.spring.SqlSessionTemplate;
-import org.springframework.batch.item.ItemWriter;
 
+import com.sslee.batch.common.ExecutorBatchItemWriter;
 import com.sslee.batch.jotm.domain.Book;
 import com.sslee.batch.jotm.domain.User;
 
-public class UserItemWriter implements ItemWriter<User> {
-
+public class UserItemWriter extends ExecutorBatchItemWriter<User> {
+	
 	private SqlSessionTemplate oracleXASqlSessionTemplate;
 	private SqlSessionTemplate pgsqlXASqlSessionTemplate;
 
-	@Override
-	public void write(List<? extends User> userList) throws Exception {
+	public UserItemWriter(List<SqlSessionTemplate> sqlSessionTemplates) {
 		
-		for(User user : userList) {
+		super(sqlSessionTemplates);
+		
+		this.oracleXASqlSessionTemplate = sqlSessionTemplates.get(0);
+		this.pgsqlXASqlSessionTemplate = sqlSessionTemplates.get(1);
+		
+	}
+
+	@Override
+	protected void writeItems(List<? extends User> items) {
+		
+		for(User user : items) {
 			oracleXASqlSessionTemplate.update("batch.user.addUser", user);
 		}
 		
@@ -27,16 +36,5 @@ public class UserItemWriter implements ItemWriter<User> {
 		pgsqlXASqlSessionTemplate.insert("batch.user.addBook", test);
 		
 	}
-
-	public void setOracleXASqlSessionTemplate(
-			SqlSessionTemplate oracleXASqlSessionTemplate) {
-		this.oracleXASqlSessionTemplate = oracleXASqlSessionTemplate;
-	}
-
-	public void setPgsqlXASqlSessionTemplate(
-			SqlSessionTemplate pgsqlXASqlSessionTemplate) {
-		this.pgsqlXASqlSessionTemplate = pgsqlXASqlSessionTemplate;
-	}
-	
 
 }

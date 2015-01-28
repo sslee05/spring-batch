@@ -26,6 +26,9 @@ public class UserWriter implements ItemWriter<User> {
 			sqlSessionTemplate.insert("batch.user.addUser", item);
 			i++;
 		}
+		sqlSessionTemplate.flushStatements();
+		System.out.println("fdasfdsa");
+		System.out.println("fdasfdsa");
 	
 	}
 
