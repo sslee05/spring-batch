@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "src/org/apache/ibatis/builder/xml/mybatis-3-mapper.dtd">
+<mapper namespace="batchMessage">
+
+    <select id="insertEmails" parameterType="com.sslee.batch.emessage.vo.EmailVO">
+        <![CDATA[
+        INSERT INTO EMAIL (sender_id,email) VALUES (#{messageId},#{email})
+        ]]>         
+    </select>
+     
+    <insert id="isnertSms" parameterType="com.sslee.batch.emessage.vo.SmsVO">
+        INSERT INTO EMAIL (sender_id,phone_number) VALUES (#{messageId},#{phoneNumber})
+    </insert>
+    
+</mapper>

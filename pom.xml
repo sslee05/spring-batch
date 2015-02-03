@@ -24,6 +24,7 @@
         <org.slf4j-version>1.6.1</org.slf4j-version>
         <logback.version>0.9.29</logback.version>
         <junit.version>4.11</junit.version>
+        <egov.framework.rte.version>3.1.0</egov.framework.rte.version>
 	</properties>
      
 	<dependencies>
@@ -584,6 +585,49 @@
 		    <artifactId>j2ssh-core</artifactId>
 		    <version>0.2.9</version>
 		</dependency>
+		
+		
+		<!-- egov -->
+        <dependency>
+            <groupId>egovframework.rte</groupId>
+            <artifactId>egovframework.rte.fdl.idgnr</artifactId>
+            <version>${egov.framework.rte.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>egovframework.rte</groupId>
+            <artifactId>egovframework.rte.fdl.cmmn</artifactId>
+            <version>${egov.framework.rte.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>log4j-slf4j-impl</artifactId>
+                    <groupId>org.apache.logging.log4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>slf4j-api</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jcl-over-slf4j</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>egovframework.rte</groupId>
+            <artifactId>egovframework.rte.psl.dataaccess</artifactId>
+            <version>${egov.framework.rte.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>ibatis-sqlmap</artifactId>
+                    <groupId>org.apache.ibatis</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        
 	</dependencies>
 	
 	<repositories>
@@ -604,12 +648,12 @@
           <id>codelds</id>
           <url>https://code.lds.org/nexus/content/groups/main-repo</url>
         </repository>
-        <!-- 
+        
         <repository>
             <id>local</id>
             <url>http://localhost:8081/nexus/content/repositories/thirdparty</url>
         </repository>
-         -->
+        
     </repositories>
 
 	<build>

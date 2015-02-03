@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "src/org/apache/ibatis/builder/xml/mybatis-3-mapper.dtd">
+<mapper namespace="batchId">
+
+    <select id="getNextId" resultType="java.lang.Long" parameterType="com.sslee.batch.sequence.SequenceVO">
+        <![CDATA[
+        SELECT  NVL(next_id,1)+1
+        FROM    ID_CNTI
+        WHERE   table_name = #{type}
+        FOR UPDATE
+        ]]>         
+    </select>
+     
+    <insert id="updateId" parameterType="com.sslee.batch.sequence.SequenceVO">
+        UPDATE ID_CNTI SET NEXT_ID = #{endSequence} WHERE table_name = #{type}
+    </insert>
+    
+</mapper>
