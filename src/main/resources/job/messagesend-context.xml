@@ -15,18 +15,21 @@
 		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.0.xsd
 		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd">
-
+    
+    <!--  common layer -->
     <import resource="classpath:context/batch-context.xml"/>
     
     <bean id="messageSender" class="com.sslee.batch.emessage.MessageSender" abstract="true"
-        p:messageTypeName="EMAIL" p:queryId="batchMessage.insertEmails" p:systemName="SMPD"
-        p:sequenceService-ref="sequenceService" p:sqlSessionTemplate-ref="ssleeSqlSessionTemplate"
-        p:keyColumnLength="46" p:fillCharacter="0" init-method="init"/>
-        
+        p:messageTypeName="EMAIL" p:queryId="batchMessage.insertEmails" p:sequenceService-ref="sequenceService" 
+        p:sqlSessionTemplate-ref="ssleeSqlSessionTemplate" p:keyColumnLength="46" p:fillCharacter="0" init-method="init"/>
+    
+    
+    <!-- team part layer -->    
     <bean id="emailSender" parent="messageSender">
         <property name="messageRowMapper">
             <ref bean="userRowMapper" />
         </property>
+        <property name="systemName" value="SMPD" />
     </bean>
     
     <bean id="userRowMapper" class="com.sslee.batch.emessage.UserRowMapper" />
