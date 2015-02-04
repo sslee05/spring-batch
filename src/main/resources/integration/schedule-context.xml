@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-4.0.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.0.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd">
+
+
+    <int:outbound-channel-adapter channel="schedule" ref="requestScheduler" method="callJobLauncher">
+        <int:poller cron="*/3 * * * * *" />
+    </int:outbound-channel-adapter>
+    
+    <int:channel id="schedule">
+        <int:queue capacity="10"/>
+    </int:channel>
+    <!-- 
+    <bean id="requestScheduler" class="com.sslee.batch.integration.schedule.Scheduler" p:requestChannel-ref="requestChannel" /> -->
+    <bean id="requestScheduler" class="com.sslee.batch.integration.schedule.Scheduler"  />
+    <int:service-activator input-channel="requestChannel" ref="jobController" method="executeJob" />
+    
+    <bean id="jobController" class="com.sslee.batch.integration.schedule.JobController" />
+     
+</beans>

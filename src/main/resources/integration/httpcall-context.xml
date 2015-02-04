@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:batch="http://www.springframework.org/schema/batch"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-http="http://www.springframework.org/schema/integration/http"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-4.0.xsd
+		http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http-4.0.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd">
+
+    <int:channel id="requestChannel" />
+    <int:channel id="responseChannel">
+        <int:queue capacity="10"/>
+    </int:channel>
+    
+    <!-- 
+    <int-http:outbound-gateway id="exectueJobHttpGateway"
+        request-channel="requestChannel"
+        url="http://newspaper.naver.com/{systemName}/index.nhn?id={jobName}"
+        http-method="GET"
+        expected-response-type="java.lang.String"
+        charset="UTF-8"
+        reply-timeout="5000"
+        reply-channel="responseChannel"> 
+        <int-http:uri-variable name="jobName" expression="payload.getJobName()"/>
+        <int-http:uri-variable name="systemName" expression="payload.getSystemName()"/>   
+    </int-http:outbound-gateway>
+     -->
+     
+     <int-http:outbound-gateway id="exectueJobHttpGateway"
+        request-channel="requestChannel"
+        url="http://localhost/{systemName}/index.nhn?id={jobName}"
+        http-method="GET"
+        expected-response-type="java.lang.String"
+        charset="UTF-8"
+        reply-timeout="5000"
+        reply-channel="responseChannel"> 
+        <int-http:uri-variable name="jobName" expression="payload.getJobName()"/>
+        <int-http:uri-variable name="systemName" expression="payload.getSystemName()"/>   
+    </int-http:outbound-gateway>
+
+</beans>
