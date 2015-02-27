@@ -1,7 +1,20 @@
-package com.sslee.batch.cronjob;
+package com.sslee.batch.cronjob.executor;
 
+import java.net.UnknownHostException;
 import java.util.concurrent.ConcurrentMap;
 
+import javax.annotation.PostConstruct;
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import com.sslee.batch.cronjob.http.UserHttpServletRequest;
+import com.sslee.batch.cronjob.job.ProcessItemService;
+import com.sslee.batch.cronjob.job.ReadItemService;
 import com.sslee.batch.exception.BatchException;
 
 
@@ -13,19 +26,42 @@ public abstract class AbstractJobExecutor<T> implements JobExecutor{
 	private String jobName;
 	private boolean isStop;
 	private ConcurrentMap<String,String> parameters;
+	private String hostName;
+	private static final String UID_KEY = "kcsUID";
+	private static final String DASH_STR = "-";
 	
+	@Autowired
+    private ServletContext servletContext;
+	
+	@PostConstruct
 	public void initValidate() {
 		
 		if(this.jobName == null) throw new BatchException("jobName must be not null");
 		if(this.processItemService == null)
 			throw new BatchException("processItemService must be not null");
+		
+		try {
+			this.hostName = java.net.InetAddress.getLocalHost().getHostName();
+		} catch (UnknownHostException e) {
+			this.hostName = "localhost";
+		}
 	}
 	
 	@Override
-	public void executeJob() {
+	public void run() {
+		this.executeJob();
+	} 
+	
+	private void executeJob() {
 		
 		while(!isStop) {
 			try {
+				
+				HttpServletRequest request = new UserHttpServletRequest(servletContext);
+				request.setAttribute(UID_KEY,this.hostName+DASH_STR+this.jobName+DASH_STR);
+				RequestAttributes requestAttributes = new ServletRequestAttributes(request);
+				RequestContextHolder.setRequestAttributes(requestAttributes);
+				
 				run(parameters);
 				Thread.sleep(repeatMillSeconds);
 			}
@@ -87,8 +123,4 @@ public abstract class AbstractJobExecutor<T> implements JobExecutor{
 		this.parameters = parameters;
 	}
 	
-	
-	
-	
-
 }

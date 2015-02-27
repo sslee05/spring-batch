@@ -1,9 +1,8 @@
 package com.sslee.batch.integration.schedule;
 
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.integration.core.PollableChannel;
+
+
 
 public class Scheduler {
 	

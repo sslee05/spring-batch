@@ -13,4 +13,5 @@ public abstract class AbstractKeyGenerator implements KeyGenerator {
 		
 		return String.format(formatStr, id);
 	}
+	
 }

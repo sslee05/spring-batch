@@ -16,6 +16,9 @@ public class NoRollbackExceptionTest {
 		
 		CommandLineJobRunner.main(new String[]{"job/norollbackexceptiontest-context.xml",
 	   	          "noRollbackTestJob",
+	   	          "successFlag=Y",
+	   	          "fileName=user_info_20150114.txt",
+	   	          "test=1",
 	              "timestamp="+System.currentTimeMillis()});
 		
 	}

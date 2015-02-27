@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:batch="http://www.springframework.org/schema/batch"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.0.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd">
+
+    <import resource="classpath:context/batch-context.xml"/>
+    
+    <bean id="excelReader" class="org.springframework.batch.item.excel.poi.PoiItemReader" >
+        <property name="resource" value="file:/Users/sslee/github/spring-batch/files/player.xlsx" />
+        <property name="linesToSkip" value="1" />
+        <!-- <property name="strict" value="false"/> -->
+        <property name="rowMapper">
+            <bean class="com.sslee.batch.excel.UserRowMapper" />
+        </property>
+    </bean>
+    
+    <bean id="userItemWriter" class="com.sslee.batch.stepflow.infrastructure.UserWriter" scope="step">
+        <constructor-arg>
+            <ref bean="ssleeSqlSessionTemplate"/>
+        </constructor-arg>
+    </bean>
+    
+    <batch:job id="excelJob">
+        <batch:step id="excelStep">
+            <batch:tasklet transaction-manager="transactionManager">
+                <batch:chunk commit-interval="1000" reader="excelReader" writer="userItemWriter" />
+            </batch:tasklet>
+        </batch:step>
+    </batch:job>
+    
+
+</beans>

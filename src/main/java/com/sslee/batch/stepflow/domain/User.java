@@ -11,6 +11,11 @@ public class User implements Serializable {
 	private String email;
 	private int age;
 	
+	@Override
+	public String toString() {
+		return this.userId;
+	}
+	
 	public String getUserId() {
 		return userId;
 	}

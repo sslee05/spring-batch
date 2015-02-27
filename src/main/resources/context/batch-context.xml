@@ -139,7 +139,15 @@
     </bean>
     
     <!-- ***** Business의 service layer transactionManager ****  -->
-    <tx:annotation-driven transaction-manager="transactionManager"/>
+    <!-- <tx:annotation-driven transaction-manager="transactionManager"/> -->
+    
+    <bean id="conversionService" class="org.springframework.context.support.ConversionServiceFactoryBean">
+        <property name="converters">
+            <list>
+                <bean class="com.sslee.batch.util.ByteRangeConverter"></bean>
+            </list>
+        </property>
+    </bean>
    
         
 </beans>

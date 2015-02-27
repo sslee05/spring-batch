@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-http="http://www.springframework.org/schema/integration/http"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-3.0.xsd
+		http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http-3.0.xsd
+		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-4.0.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.0.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd">
+    
+    
+    <import resource="classpath:cronjob/repository-context.xml"/>
+    
+    <bean id="jdbcPlaceholderProperties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" >
+        <property name="location" value="classpath:properties/jdbc.properties" />
+        <property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE" />
+        <property name="ignoreUnresolvablePlaceholders" value="true" />
+        <property name="order" value="1" />
+    </bean>
+    
+    <context:component-scan base-package="com.sslee.web.job"></context:component-scan>
+    <bean id="jobBooteHandler" class="com.sslee.batch.cronjob.JobBootHandler" />
+    
+    <int:channel id="requestChannel" />
+    
+    
+    <bean class="org.springframework.integration.http.inbound.IntegrationRequestMappingHandlerMapping"/>
+
+    <int-http:inbound-gateway id="inboundGateway"
+        request-channel="incoming" reply-channel="outgoing" 
+        supported-methods="GET" reply-timeout="5000"
+        path="/{jobName}/{command}/execute.job">
+        <int-http:header name="jobName" expression="#pathVariables.jobName"/>
+        <int-http:header name="command" expression="#pathVariables.command"/>
+    </int-http:inbound-gateway>
+    
+    <int-http:inbound-gateway id="inboundGatewaySeconds"
+        request-channel="incomingSeconds" reply-channel="outgoing" 
+        supported-methods="GET" reply-timeout="5000"
+        path="/{jobName}/{command}/{millseconds}/execute.job">
+        <int-http:header name="jobName" expression="#pathVariables.jobName"/>
+        <int-http:header name="command" expression="#pathVariables.command"/>
+        <int-http:header name="millseconds" expression="#pathVariables.millseconds"/>
+    </int-http:inbound-gateway>
+    
+    <int-http:inbound-gateway id="inboundGatewayDebug"
+        request-channel="incomingDebug" reply-channel="outgoing" 
+        supported-methods="GET" reply-timeout="5000"
+        path="/{jobName}/debug/execute.job">
+        <int-http:header name="jobName" expression="#pathVariables.jobName"/>
+    </int-http:inbound-gateway>
+    
+    <!-- 
+    <int:transformer expression="T(org.springframework.web.context.request.RequestContextHolder).
+            requestAttributes.request.queryString" />
+     -->
+
+    <int:channel id="incoming" />
+    <int:channel id="incomingSeconds" />
+    <int:channel id="incomingDebug" />
+    <int:channel id="outgoing" />
+    
+    <bean id="jobHandleServiceActivator" class="com.sslee.batch.cronjob.serviceactivator.JobHandleServiceActivator"
+        p:jobBootHandler-ref="jobBooteHandler"></bean>
+
+    <int:service-activator id="activator" input-channel="incoming" ref="jobHandleServiceActivator"
+        method="handleJob" output-channel="outgoing" requires-reply="true" />
+        
+    <int:service-activator id="activatorChangePeriod" input-channel="incomingSeconds" ref="jobHandleServiceActivator"
+        method="changeSecondsPeriod" output-channel="outgoing" requires-reply="true" />
+        
+    <int:service-activator id="activatorChangeDebug" input-channel="incomingDebug" ref="jobHandleServiceActivator"
+        method="debugJob" output-channel="outgoing" requires-reply="true" />
+        
+    <!-- <int:object-to-string-transformer id="outgoingJsonConverter" input-channel="outgoing" /> -->
+    <int:json-to-object-transformer id="incomingJsonConverter" input-channel="incoming" type="java.util.HashMap"  />
+    
+    
+    
+    <bean id="jobLogService" class="com.sslee.batch.cronjob.serviceactivator.JobLogServiceActivator"
+        p:sqlSessionTemplate-ref="sqlSessionTemplate"/>
+    
+    <int:service-activator id="jobLogServiceActivator" input-channel="incomingLog" ref="jobLogService"
+        method="getJobLog" output-channel="outLog" requires-reply="true" />
+        
+    <int:channel id="incomingLog" />
+    <int:channel id="outLog" />
+    
+    <int-http:inbound-gateway id="inboundGatewayLogger"
+        request-channel="incomingLog" reply-channel="outLog" 
+        supported-methods="GET" reply-timeout="5000"
+        path="/{jobName}/log/execute.job"
+        request-payload-type="com.sslee.batch.stepflow.domain.User">
+        <int-http:header name="jobName" expression="#pathVariables.jobName"/>
+    </int-http:inbound-gateway>
+    
+    <int:json-to-object-transformer id="incomingLogJsonConverter" input-channel="incomingLog" type="com.sslee.batch.stepflow.domain.User"  />
+    <int:object-to-string-transformer id="outgoingJsonConverter" input-channel="outLog" />
+    
+    <bean id="tracer" class="com.sslee.batch.cronjob.log.JobTracerImpl"
+        p:sqlSessionTemplate-ref="sqlSessionTemplate" />
+        
+    <!-- ***** log   ***** -->
+   <bean id="log4jInitialisation" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="targetClass"
+            value="org.springframework.util.Log4jConfigurer" />
+        <property name="targetMethod" value="initLogging" />
+        <property name="arguments">
+            <list>
+                <value>classpath:properties/log4j.xml</value>
+            </list>
+        </property>
+   </bean>
+   
+   <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager" lazy-init="true">
+        <property name="dataSource" ref="hsqlDataSource" />
+    </bean>
+    
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+</beans>

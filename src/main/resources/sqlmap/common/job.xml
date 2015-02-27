@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "src/org/apache/ibatis/builder/xml/mybatis-3-mapper.dtd">
+<mapper namespace="job">
+
+    <select id="getJob" resultType="com.sslee.batch.cronjob.log.Job" parameterType="com.sslee.batch.cronjob.log.Job">
+        <![CDATA[
+        SELECT  job_name AS jobName
+        FROM    JOB_INSTANCE
+        WHERE   job_name = #{jobName}
+        ]]>         
+    </select>
+    
+    <select id="getJobKey" resultType="com.sslee.batch.cronjob.log.Job" parameterType="com.sslee.batch.cronjob.log.Job">
+        <![CDATA[
+        SELECT  job_name AS jobName,
+                start_date AS startDate,
+                end_date AS endDate,
+                total_count AS totalCount,
+                success_count AS successCount,
+                skip_count AS skipCount,
+                exit_code AS exitCode
+        FROM    JOB_INSTANCE
+        WHERE   job_name = #{jobName}
+        ]]>         
+    </select>
+    
+    <resultMap type="com.sslee.batch.cronjob.log.Job" id="getJobWithDetailsMap">
+        <id column="jobName" property="jobName" />
+        <result column="startDate" property="startDate" />
+        <result column="endDate" property="endDate" />
+        <result column="totalCount" property="totalCount" />
+        <result column="successCount" property="successCount" />
+        <result column="skipCount" property="skipCount" />
+        <result column="exitCode" property="exitCode" />
+        <collection property="jobItemTraces" column="{jobName=jobName}" ofType="Com.sslee.batch.cronjob.log.JobItemTrace" select="getJobTrace">            
+            <id property="jobName" column="jobName" />
+            <result property="startDate" column="startDate" />
+            <result property="endDate" column="endDate" />
+            <result property="itemId" column="itemId" />
+            <result property="traceLog" column="traceLog" />
+        </collection>
+    </resultMap>
+    <select id="getJobWithDetails" resultMap="getJobWithDetailsMap" parameterType="com.sslee.batch.cronjob.log.Job">
+        <![CDATA[
+        SELECT  job_name AS jobName,
+                start_date AS startDate,
+                end_date AS endDate,
+                total_count AS totalCount,
+                success_count AS successCount,
+                skip_count AS skipCount,
+                exit_code AS exitCode
+        FROM    JOB_INSTANCE
+        WHERE   job_name = #{jobName}
+        ]]>         
+    </select>
+    
+    <insert id="addJob" parameterType="com.sslee.batch.cronjob.log.Job">
+        <![CDATA[
+        INSERT INTO JOB_INSTANCE (
+            JOB_NAME,
+            START_DATE,
+            END_DATE,
+            TOTAL_COUNT,
+            SUCCESS_COUNT,
+            SKIP_COUNT,
+            EXIT_CODE
+        ) VALUES (
+            #{jobName},
+            #{startDate},
+            #{endDate},
+            #{totalCount},
+            #{successCount},
+            #{skipCount},
+            #{exitCode}
+        )
+        ]]>
+    </insert>
+    
+    <update id="updateJob" parameterType="com.sslee.batch.cronjob.log.Job" >
+        UPDATE JOB_INSTANCE 
+        SET    START_DATE = #{startDate},
+               END_DATE = #{endDate},
+               TOTAL_COUNT = #{totalCount},
+               SUCCESS_COUNT = #{successCount},
+               SKIP_COUNT = #{skipCount},
+               EXIT_CODE = #{exitCode}
+        WHERE  JOB_NAME = #{jobName} 
+    </update>
+    
+    <select id="getJobTrace" parameterType="com.sslee.batch.cronjob.log.JobItemTrace" resultType="com.sslee.batch.cronjob.log.JobItemTrace">
+        SELECT JOB_NAME AS jobName,
+               START_DATE AS startDate,
+               END_DATE AS endDate,
+               ITEM_ID AS itemId,
+               TRACE AS traceLog
+        FROM   JOB_TRACE
+        WHERE  job_name = #{jobName}
+        ORDER BY START_DATE DESC       
+    </select>
+    
+    <insert id="addJobTrace" parameterType="com.sslee.batch.cronjob.log.JobItemTrace">
+        <![CDATA[
+        INSERT INTO JOB_TRACE (
+            JOB_NAME,
+            START_DATE,
+            END_DATE,
+            ITEM_ID,
+            TRACE
+        ) VALUES (
+            #{jobName},
+            #{startDate},
+            #{endDate},
+            #{itemId},
+            #{traceLog}
+        )
+        ]]>
+    </insert>
+    
+</mapper>

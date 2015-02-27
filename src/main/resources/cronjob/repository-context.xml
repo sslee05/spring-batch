@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-4.0.xsd">
+    
+    <!-- 
+    <jdbc:embedded-database id="logHsqlDatabase" type="HSQL">
+        <jdbc:script location="classpath:script/init-hsqldb.sql"/>
+    </jdbc:embedded-database>
+     -->
+     
+    <bean id="hsqlDataSource" class="org.apache.commons.dbcp.BasicDataSource">
+        <property name="driverClassName" value="${hsql.jdbc.driver}" />
+        <property name="url" value="${hsql.jdbc.url}" />
+        <property name="username" value="${hsql.jdbc.user}" />
+        <property name="password" value="${hsql.jdbc.password}" />
+    </bean>
+    
+    <jdbc:initialize-database data-source="hsqlDataSource" ignore-failures="DROPS">
+        <jdbc:script location="classpath:script/init-hsqldb.sql" />
+    </jdbc:initialize-database>
+    
+    
+    <!-- ***** Business의 sqlSessionFactory ***** -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="hsqlDataSource" />
+        <property name="configLocation" value="classpath:context/mybatis-config.xml"/>
+        <property name="mapperLocations">
+            <list>
+                <value>classpath:sqlmap/**/*.xml</value>
+            </list>
+        </property>
+    </bean>
+    
+    <!-- ***** Business의 sqlSessionTemplat ***** -->
+    <bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate" destroy-method="clearCache">
+       <constructor-arg index="0" ref="sqlSessionFactory" />
+       <constructor-arg index="1" value="REUSE" />
+    </bean>
+
+</beans>

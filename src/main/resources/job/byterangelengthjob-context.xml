@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:batch="http://www.springframework.org/schema/batch"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+    <import resource="classpath:context/batch-context.xml"/>
+
+    <bean id="backupTasklet" class="com.sslee.batch.stepflow.infrastructure.BackupTasklet" scope="step">
+        <property name="successFlag" value="#{jobParameters['successFlag']}" />
+    </bean>
+    
+    <bean id="restorationTasklet" class="com.sslee.batch.stepflow.infrastructure.RestorationTaklet" scope="step" />
+    
+    <!-- 
+    <bean id="userFileItemReader" class="org.springframework.batch.item.file.FlatFileItemReader" scope="step">
+        <property name="resource" value="file:/Users/sslee/github/spring-batch/files/#{jobParameters['fileName']}" />
+        <property name="linesToSkip" value="1" />
+        <property name="lineMapper">
+            <bean class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
+                <property name="lineTokenizer">
+                    <bean class="org.springframework.batch.item.file.transform.DelimitedLineTokenizer">
+                        <property name="delimiter" value=","/>
+                        <property name="names" value="userName,userId,email,age " />
+                    </bean>
+                </property>
+                <property name="fieldSetMapper">
+                    <bean class="com.sslee.batch.stepflow.mapper.UserFieldMapper" />
+                </property>
+            </bean>
+        </property>
+    </bean>
+    -->
+    
+    <bean id="userFileItemReader" class="org.springframework.batch.item.file.FlatFileItemReader" scope="step">
+        <property name="resource" value="file:/Users/sslee/github/spring-batch/files/#{jobParameters['fileName']}" />
+        <property name="linesToSkip" value="1" />
+        <property name="lineMapper">
+            <bean class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
+                <property name="lineTokenizer">
+                    <bean class="com.sslee.batch.common.ByteRangeTokenizer">
+                        <property name="endcoding" value="UTF-8"/>
+                        <property name="columns" value="1-12,13-7"/>
+                        <property name="names" value="userName,userId" />
+                    </bean>
+                </property>
+                <property name="fieldSetMapper">
+                    <bean class="com.sslee.batch.bytefixlength.UserFieldSetMapper" />
+                </property>
+            </bean>
+        </property>
+    </bean>
+    
+    <bean id="userWriter" class="com.sslee.batch.stepflow.infrastructure.UserWriter" scope="step">
+        <constructor-arg>
+                <ref bean="ssleeSqlSessionTemplate"/>
+        </constructor-arg>
+    </bean>
+    
+    <bean id="userStepExecutionListener" class="com.sslee.batch.stepflow.listener.UserProcessStepExecutionListener" />
+    <bean id="restorationJobExecutionListener" class="com.sslee.batch.common.RestoreJobExecutionListener">
+        <constructor-arg><bean class="com.sslee.batch.stepflow.helper.UserDataRestoration"/></constructor-arg>
+    </bean>
+    
+    <batch:job id="byterangelengthJob">
+        <batch:step id="byterangelengthStep">
+            <batch:tasklet ref="backupTasklet" transaction-manager="transactionManager"/>
+            <batch:next on="CUSTOM_SUCCESS" to="processStep"/>
+            <batch:end on="*"/>
+        </batch:step>
+        <batch:step id="processStep">
+            <batch:tasklet transaction-manager="transactionManager">
+                <batch:chunk commit-interval="2" reader="userFileItemReader" writer="userWriter" />
+            </batch:tasklet>
+            <batch:end on="COMPLETED" />
+            <batch:next on="*" to="restoreStep"/>
+        </batch:step>
+        <batch:step id="restoreStep">
+            <batch:tasklet ref="restorationTasklet" transaction-manager="transactionManager" />
+        </batch:step>
+    </batch:job>
+    
+</beans>

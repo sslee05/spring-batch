@@ -3,37 +3,36 @@ package com.sslee.batch.stepflow.infrastructure;
 import java.util.List;
 
 import org.mybatis.spring.SqlSessionTemplate;
-import org.springframework.batch.item.ItemWriter;
 
+import com.sslee.batch.common.ExecutorBatchItemWriter;
 import com.sslee.batch.exception.BatchException;
 import com.sslee.batch.stepflow.domain.User;
 
-public class UserWriter implements ItemWriter<User> {
+public class UserWriter extends ExecutorBatchItemWriter<User> {
 	
 	private SqlSessionTemplate sqlSessionTemplate;
-
-	@Override
-	public void write(List<? extends User> items) throws Exception {
-		
-		//throw new BatchException("##################");
-		
-		//duplicate exception 발생 
-		//Attempt to update step execution id=1062 with wrong version (1)
-		//can't controll step flow
-		int i = 0;
-		for(User item : items) {
-			//if(i>0) throw new BatchException("custom exception");
-			sqlSessionTemplate.insert("batch.user.addUser", item);
-			i++;
-		}
-		sqlSessionTemplate.flushStatements();
-		System.out.println("fdasfdsa");
-		System.out.println("fdasfdsa");
 	
+	public UserWriter(SqlSessionTemplate sqlSessionTemplate) {
+		super(sqlSessionTemplate);
+		this.sqlSessionTemplate = sqlSessionTemplate;
 	}
 
-	public void setSqlSessionTemplate(SqlSessionTemplate sqlSessionTemplate) {
-		this.sqlSessionTemplate = sqlSessionTemplate;
+	@Override
+	protected void writeItems(List<? extends User> items) {
+		
+//		int i=0;
+		for(User item : items) {
+//			if(item.getUserId().equals("sslee04") || item.getUserId().equals("sslee07"))
+//				throw new BatchException("skip");
+//			if(i>0) {
+//				String test = null;
+//				test.split(";");
+//			}
+			sqlSessionTemplate.insert("batch.user.addUser", item);
+			
+//			i++;
+		}
+		
 	}
 	
 	
